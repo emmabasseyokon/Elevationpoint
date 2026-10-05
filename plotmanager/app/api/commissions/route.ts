@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { companyId, adminClient } = result.auth
+    const { adminClient } = result.auth
 
     const { searchParams } = new URL(request.url)
     const agentId = searchParams.get('agent_id')
@@ -16,7 +16,6 @@ export async function GET(request: NextRequest) {
     let query = adminClient
       .from('commissions')
       .select('*, agents(first_name, last_name), buyers(first_name, last_name)')
-      .eq('company_id', companyId)
       .order('created_at', { ascending: false })
 
     if (agentId) {
@@ -43,7 +42,7 @@ export async function POST(request: NextRequest) {
   try {
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { userId, companyId, adminClient } = result.auth
+    const { userId, adminClient } = result.auth
 
     const body = await request.json()
     const parsed = commissionPaymentSchema.safeParse(body)
@@ -54,7 +53,6 @@ export async function POST(request: NextRequest) {
       .from('commissions')
       .select('id, commission_amount, amount_paid, status')
       .eq('id', parsed.data.commission_id)
-      .eq('company_id', companyId)
       .single()
 
     if (commissionError || !commission) {
@@ -63,7 +61,6 @@ export async function POST(request: NextRequest) {
 
     // Record the commission payment
     const insertData: TablesInsert<'commission_payments'> = {
-      company_id: companyId,
       commission_id: parsed.data.commission_id,
       amount: parsed.data.amount,
       payment_date: parsed.data.payment_date,
@@ -100,7 +97,6 @@ export async function POST(request: NextRequest) {
       .from('commissions')
       .update({ amount_paid: newAmountPaid, status: newStatus })
       .eq('id', commission.id)
-      .eq('company_id', companyId)
 
     if (updateError) {
       return serverError(updateError, 'POST /api/commissions')

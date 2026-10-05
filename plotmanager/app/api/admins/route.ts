@@ -36,7 +36,6 @@ export async function POST(request: NextRequest) {
         email: parsed.data.email,
         full_name: parsed.data.full_name,
         role: 'admin',
-        company_id: auth.companyId,
       })
 
     if (profileError) {
@@ -45,7 +44,6 @@ export async function POST(request: NextRequest) {
     }
 
     logActivity({
-      companyId: auth.companyId,
       userId: auth.userId,
       userName: auth.userName,
       action: 'created',

@@ -12,7 +12,7 @@ async function getCompanyBySlug(slug: string) {
 
   const { data: company } = await adminClient
     .from('companies')
-    .select('id, name, slug, form_enabled')
+    .select('name, slug, form_enabled')
     .eq('slug', slug)
     .single()
 
@@ -40,7 +40,6 @@ export async function GET(
     const { data: estates } = await adminClient
       .from('estates')
       .select('id, name, location, price_per_plot, plot_sizes')
-      .eq('company_id', company.id)
       .eq('status', 'active')
       .gt('available_plots', 0)
       .order('name')
@@ -67,7 +66,7 @@ export async function POST(
   try {
     // Rate limit: 5 submissions per minute per IP
     const rateLimitKey = getRateLimitKey(request, 'public-form')
-    const { allowed, retryAfterSeconds } = checkRateLimit(rateLimitKey, { maxRequests: 5, windowSeconds: 60 })
+    const { allowed, retryAfterSeconds } = await checkRateLimit(rateLimitKey, { maxRequests: 5, windowSeconds: 60 })
     if (!allowed) {
       return NextResponse.json(
         { error: 'Too many submissions. Please try again later.' },
@@ -103,7 +102,6 @@ export async function POST(
       .from('estates')
       .select('id, name, location, price_per_plot, available_plots, plot_sizes')
       .eq('id', data.estate_id)
-      .eq('company_id', company.id)
       .single()
 
     if (!estate) {
@@ -146,7 +144,6 @@ export async function POST(
         .select('id, first_name, last_name, email, phone, plot_size, plot_number, number_of_plots, total_amount, amount_paid, payment_status, purchase_date, created_at')
         .eq('email', data.email)
         .eq('estate_id', data.estate_id)
-        .eq('company_id', company.id)
         .limit(1)
 
       if (existing && existing.length > 0) {
@@ -168,7 +165,6 @@ export async function POST(
         .select('*')
         .eq('id', data.existing_buyer_id)
         .eq('estate_id', data.estate_id)
-        .eq('company_id', company.id)
         .single()
 
       if (!existingBuyer) {
@@ -258,7 +254,6 @@ export async function POST(
         .from('buyers')
         .update(updatePayload)
         .eq('id', existingBuyer.id)
-        .eq('company_id', company.id)
         .select()
         .single()
 
@@ -269,7 +264,6 @@ export async function POST(
       // Record payment for the new plots
       if (newAmountPaid > 0) {
         await adminClient.from('payments').insert({
-          company_id: company.id,
           buyer_id: existingBuyer.id,
           amount: newAmountPaid,
           payment_date: data.purchase_date || today,
@@ -293,7 +287,6 @@ export async function POST(
           .from('payment_schedules')
           .select('installment_number')
           .eq('buyer_id', existingBuyer.id)
-          .eq('company_id', company.id)
           .order('installment_number', { ascending: false })
           .limit(1)
 
@@ -301,7 +294,6 @@ export async function POST(
 
         const scheduleEntries = schedule.map((entry) => ({
           buyer_id: existingBuyer.id,
-          company_id: company.id,
           installment_number: lastNumber + entry.installment_number,
           due_date: entry.due_date,
           expected_amount: entry.expected_amount,
@@ -329,7 +321,6 @@ export async function POST(
           .from('agents')
           .select('id, commission_type, commission_rate')
           .eq('id', agentId)
-          .eq('company_id', company.id)
           .single()
 
         if (agent && agent.commission_rate > 0) {
@@ -339,7 +330,6 @@ export async function POST(
             : agent.commission_rate
 
           await adminClient.from('commissions').insert({
-            company_id: company.id,
             agent_id: agent.id,
             buyer_id: existingBuyer.id,
             commission_amount: commissionAmount,
@@ -354,7 +344,6 @@ export async function POST(
 
     // ── NEW BUYER: insert fresh record ──
     const insertData: TablesInsert<'buyers'> = {
-      company_id: company.id,
       first_name: data.first_name,
       last_name: data.last_name,
       email: data.email,
@@ -409,7 +398,6 @@ export async function POST(
     // Auto-create payment record for initial amount paid (outright or initial deposit)
     if (buyer && (insertData.amount_paid ?? 0) > 0) {
       await adminClient.from('payments').insert({
-        company_id: company.id,
         buyer_id: buyer.id,
         amount: insertData.amount_paid ?? 0,
         payment_date: insertData.purchase_date || today,
@@ -439,7 +427,6 @@ export async function POST(
 
       const scheduleEntries = schedule.map((entry) => ({
         buyer_id: buyer.id,
-        company_id: company.id,
         installment_number: entry.installment_number,
         due_date: entry.due_date,
         expected_amount: entry.expected_amount,
@@ -455,7 +442,6 @@ export async function POST(
         .from('agents')
         .select('id, commission_type, commission_rate')
         .eq('id', insertData.agent_id)
-        .eq('company_id', company.id)
         .single()
 
       if (agent && agent.commission_rate > 0) {
@@ -465,7 +451,6 @@ export async function POST(
           : agent.commission_rate
 
         await adminClient.from('commissions').insert({
-          company_id: company.id,
           agent_id: agent.id,
           buyer_id: buyer.id,
           commission_amount: commissionAmount,

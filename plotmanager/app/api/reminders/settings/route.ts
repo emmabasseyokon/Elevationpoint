@@ -12,12 +12,12 @@ export async function GET() {
   try {
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { companyId, adminClient } = result.auth
+    const { adminClient } = result.auth
 
     const { data: company } = await adminClient
       .from('companies')
       .select('auto_reminders_enabled, reminder_days_before')
-      .eq('id', companyId)
+      .limit(1)
       .single()
 
     return NextResponse.json({
@@ -47,10 +47,20 @@ export async function PUT(request: NextRequest) {
       reminder_days_before: parsed.data.reminder_days_before,
     }
 
+    const { data: company } = await auth.adminClient
+      .from('companies')
+      .select('id')
+      .limit(1)
+      .single()
+
+    if (!company) {
+      return NextResponse.json({ error: 'Company not found' }, { status: 404 })
+    }
+
     const { error } = await auth.adminClient
       .from('companies')
       .update(updateData)
-      .eq('id', auth.companyId)
+      .eq('id', company.id)
 
     if (error) {
       return serverError(error, 'PUT /api/reminders/settings')

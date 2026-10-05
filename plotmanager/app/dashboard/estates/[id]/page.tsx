@@ -32,18 +32,16 @@ export default async function EstateDetailPage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('company_id')
+    .select('id')
     .eq('id', user.id)
     .single()
 
   if (!profile) redirect('/login')
-  const companyId = profile.company_id!
 
   const { data: estateRaw } = await supabase
     .from('estates')
     .select('*')
     .eq('id', id)
-    .eq('company_id', companyId)
     .single()
 
   if (!estateRaw) redirect('/dashboard/estates')
@@ -65,7 +63,6 @@ export default async function EstateDetailPage({
   const { data: buyersRaw } = await supabase
     .from('buyers')
     .select('id, first_name, last_name, email, payment_status')
-    .eq('company_id', companyId)
     .eq('estate_id', id)
     .order('created_at', { ascending: false })
 

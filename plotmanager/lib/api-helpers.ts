@@ -5,14 +5,13 @@ import type { ZodError } from 'zod'
 
 export interface AuthResult {
   userId: string
-  companyId: string
   role: 'super_admin' | 'admin'
   userName: string
   adminClient: ReturnType<typeof createAdminClient>
 }
 
 /**
- * Authenticate the request and return user info + company-scoped admin client.
+ * Authenticate the request and return user info + admin client.
  * Returns null if unauthorized — caller should return the error response.
  */
 export async function authenticateRequest(): Promise<
@@ -28,18 +27,17 @@ export async function authenticateRequest(): Promise<
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('company_id, role, full_name')
+    .select('role, full_name')
     .eq('id', user.id)
     .single()
 
-  if (!profile?.company_id) {
+  if (!profile) {
     return { error: NextResponse.json({ error: 'Profile not found' }, { status: 404 }) }
   }
 
   return {
     auth: {
       userId: user.id,
-      companyId: profile.company_id,
       role: profile.role as 'super_admin' | 'admin',
       userName: profile.full_name,
       adminClient: createAdminClient(),

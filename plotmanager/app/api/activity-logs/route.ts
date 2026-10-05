@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { companyId, adminClient } = result.auth
+    const { adminClient } = result.auth
 
     const forbidden = requireSuperAdmin(result.auth)
     if (forbidden) return forbidden
@@ -21,7 +21,6 @@ export async function GET(request: NextRequest) {
     let query = adminClient
       .from('activity_logs')
       .select('*', { count: 'exact' })
-      .eq('company_id', companyId)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 

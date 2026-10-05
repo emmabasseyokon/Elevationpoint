@@ -5,7 +5,6 @@ export type ActivityAction = 'created' | 'updated' | 'deleted'
 export type EntityType = 'buyer' | 'estate' | 'agent' | 'payment' | 'commission' | 'admin' | 'reminder' | 'settings'
 
 interface LogActivityParams {
-  companyId: string
   userId: string
   userName: string
   action: ActivityAction
@@ -19,7 +18,6 @@ export async function logActivity(params: LogActivityParams): Promise<void> {
   try {
     const adminClient = createAdminClient()
     await adminClient.from('activity_logs').insert({
-      company_id: params.companyId,
       user_id: params.userId,
       user_name: params.userName,
       action: params.action,

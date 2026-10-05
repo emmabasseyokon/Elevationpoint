@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   try {
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { userId, companyId, adminClient } = result.auth
+    const { userId, adminClient } = result.auth
 
     const body = await request.json()
     const parsed = broadcastSchema.safeParse(body)
@@ -19,7 +19,6 @@ export async function POST(request: NextRequest) {
       .from('estates')
       .select('id, name')
       .eq('id', parsed.data.estate_id)
-      .eq('company_id', companyId)
       .single()
 
     if (!estate) {
@@ -31,7 +30,6 @@ export async function POST(request: NextRequest) {
       .from('buyers')
       .select('id, email, first_name, last_name')
       .eq('estate_id', parsed.data.estate_id)
-      .eq('company_id', companyId)
       .in('id', parsed.data.buyer_ids)
       .not('email', 'is', null)
       .neq('email', '')
@@ -47,7 +45,7 @@ export async function POST(request: NextRequest) {
     const { data: company } = await adminClient
       .from('companies')
       .select('name')
-      .eq('id', companyId)
+      .limit(1)
       .single()
 
     const companyName = company?.name || 'Your Real Estate Company'
@@ -83,7 +81,6 @@ export async function POST(request: NextRequest) {
     // Record reminders for all buyers
     const reminderRows = buyers.map((buyer) => ({
       buyer_id: buyer.id,
-      company_id: companyId,
       reminder_type: 'custom' as const,
       message: `[Broadcast: ${parsed.data.subject}] ${parsed.data.message}`.slice(0, 1024),
       sent_via: 'email' as const,

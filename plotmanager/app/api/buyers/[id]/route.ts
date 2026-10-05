@@ -13,13 +13,12 @@ export async function GET(
     const { id } = await params
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { companyId, adminClient } = result.auth
+    const { adminClient } = result.auth
 
     const { data: buyer, error } = await adminClient
       .from('buyers')
       .select('*')
       .eq('id', id)
-      .eq('company_id', companyId)
       .single()
 
     if (error || !buyer) {
@@ -40,7 +39,7 @@ export async function PUT(
     const { id } = await params
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { companyId, adminClient } = result.auth
+    const { adminClient } = result.auth
 
     const body = await request.json()
     const parsed = buyerSchema.partial().safeParse(body)
@@ -51,7 +50,6 @@ export async function PUT(
       .from('buyers')
       .select('id, estate_id')
       .eq('id', id)
-      .eq('company_id', companyId)
       .single()
 
     if (!existing) {
@@ -92,7 +90,6 @@ export async function PUT(
       .from('buyers')
       .update(updateData)
       .eq('id', id)
-      .eq('company_id', companyId)
       .select()
       .single()
 
@@ -104,7 +101,7 @@ export async function PUT(
 
     // If estate changed and buyer is fully_paid, adjust available_plots
     const { data: fullBuyer } = await adminClient
-      .from('buyers').select('payment_status').eq('id', id).eq('company_id', companyId).single()
+      .from('buyers').select('payment_status').eq('id', id).single()
 
     if (newEstateId !== undefined && newEstateId !== oldEstateId && fullBuyer && fullBuyer.payment_status === 'fully_paid') {
       const plotCount = buyer?.number_of_plots || 1
@@ -141,7 +138,6 @@ export async function PUT(
         .from('payment_schedules')
         .delete()
         .eq('buyer_id', id)
-        .eq('company_id', companyId)
         .in('status', ['unpaid', 'overdue'])
 
       const schedule = generateInstallmentSchedule({
@@ -156,7 +152,6 @@ export async function PUT(
         .from('payment_schedules')
         .select('installment_number')
         .eq('buyer_id', id)
-        .eq('company_id', companyId)
 
       const existingNumbers = new Set((existingEntries || []).map((e) => e.installment_number))
 
@@ -164,7 +159,6 @@ export async function PUT(
         .filter((entry) => !existingNumbers.has(entry.installment_number))
         .map((entry) => ({
           buyer_id: id,
-          company_id: companyId,
           installment_number: entry.installment_number,
           due_date: entry.due_date,
           expected_amount: entry.expected_amount,
@@ -177,7 +171,6 @@ export async function PUT(
 
     if (buyer) {
       logActivity({
-        companyId,
         userId: result.auth.userId,
         userName: result.auth.userName,
         action: 'updated',
@@ -201,14 +194,13 @@ export async function DELETE(
     const { id } = await params
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { companyId, adminClient } = result.auth
+    const { adminClient } = result.auth
 
     // Get buyer with estate and payment info before deleting
     const { data: existing } = await adminClient
       .from('buyers')
       .select('id, first_name, last_name, estate_id, payment_status, number_of_plots')
       .eq('id', id)
-      .eq('company_id', companyId)
       .single()
 
     if (!existing) {
@@ -223,7 +215,6 @@ export async function DELETE(
       .from('buyers')
       .delete()
       .eq('id', id)
-      .eq('company_id', companyId)
 
     if (error) {
       return serverError(error, 'buyers/[id]')
@@ -243,7 +234,6 @@ export async function DELETE(
     }
 
     logActivity({
-      companyId,
       userId: result.auth.userId,
       userName: result.auth.userName,
       action: 'deleted',

@@ -10,17 +10,15 @@ export default async function AdminsPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('company_id, role')
+    .select('role')
     .eq('id', user.id)
     .single()
 
   if (!profile) redirect('/login')
-  const companyId = profile.company_id!
 
   const { data: adminsRaw } = await supabase
     .from('profiles')
     .select('id, full_name, email, role, created_at')
-    .eq('company_id', companyId)
     .order('created_at', { ascending: true })
 
   const admins = (adminsRaw || []) as Array<{

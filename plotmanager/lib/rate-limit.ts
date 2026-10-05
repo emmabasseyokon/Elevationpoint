@@ -1,43 +1,34 @@
-interface RateLimitEntry {
-  count: number
-  resetAt: number
-}
-
-const store = new Map<string, RateLimitEntry>()
-
-setInterval(() => {
-  const now = Date.now()
-  for (const [key, entry] of store) {
-    if (now > entry.resetAt) {
-      store.delete(key)
-    }
-  }
-}, 5 * 60 * 1000)
+import { createAdminClient } from '@/lib/supabase/admin'
 
 interface RateLimitConfig {
   maxRequests: number
   windowSeconds: number
 }
 
-export function checkRateLimit(
+// Counts live in Postgres (check_rate_limit) so limits hold across serverless instances.
+// Fails open: if the check itself errors, the request is allowed rather than blocking real users.
+export async function checkRateLimit(
   key: string,
   config: RateLimitConfig
-): { allowed: boolean; retryAfterSeconds: number } {
-  const now = Date.now()
-  const entry = store.get(key)
+): Promise<{ allowed: boolean; retryAfterSeconds: number }> {
+  try {
+    const { data, error } = await createAdminClient().rpc('check_rate_limit', {
+      p_key: key,
+      p_max: config.maxRequests,
+      p_window_seconds: config.windowSeconds,
+    })
 
-  if (!entry || now > entry.resetAt) {
-    store.set(key, { count: 1, resetAt: now + config.windowSeconds * 1000 })
+    const row = data?.[0]
+    if (error || !row) {
+      console.error('[RateLimit] check failed:', error?.message)
+      return { allowed: true, retryAfterSeconds: 0 }
+    }
+
+    return { allowed: row.allowed, retryAfterSeconds: row.retry_after_seconds }
+  } catch (err) {
+    console.error('[RateLimit] check failed:', err)
     return { allowed: true, retryAfterSeconds: 0 }
   }
-
-  if (entry.count >= config.maxRequests) {
-    const retryAfterSeconds = Math.ceil((entry.resetAt - now) / 1000)
-    return { allowed: false, retryAfterSeconds }
-  }
-
-  entry.count++
-  return { allowed: true, retryAfterSeconds: 0 }
 }
 
 export function getRateLimitKey(request: Request, prefix: string): string {

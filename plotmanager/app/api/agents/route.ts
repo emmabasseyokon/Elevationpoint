@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { companyId, adminClient } = result.auth
+    const { adminClient } = result.auth
 
     const searchParams = request.nextUrl.searchParams
     const status = searchParams.get('status')
@@ -17,7 +17,6 @@ export async function GET(request: NextRequest) {
     let query = adminClient
       .from('agents')
       .select('*')
-      .eq('company_id', companyId)
       .order('created_at', { ascending: false })
 
     if (status && status !== 'all') {
@@ -49,15 +48,14 @@ export async function POST(request: NextRequest) {
   try {
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { companyId, adminClient } = result.auth
+    const { adminClient } = result.auth
 
     const body = await request.json()
     const parsed = agentSchema.safeParse(body)
     if (!parsed.success) return validationError(parsed.error)
 
-    const insertData: Partial<TablesInsert<'agents'>> & { company_id: string } = {
+    const insertData: Partial<TablesInsert<'agents'>> = {
       ...parsed.data,
-      company_id: companyId,
     }
 
     // Convert empty strings to null for DB compatibility
@@ -77,7 +75,6 @@ export async function POST(request: NextRequest) {
     }
 
     logActivity({
-      companyId,
       userId: result.auth.userId,
       userName: result.auth.userName,
       action: 'created',

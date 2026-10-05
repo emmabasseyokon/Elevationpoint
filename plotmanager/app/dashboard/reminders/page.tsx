@@ -26,12 +26,11 @@ export default async function RemindersPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('company_id')
+    .select('id')
     .eq('id', user.id)
     .single()
 
   if (!profile) redirect('/login')
-  const companyId = profile.company_id!
 
   const adminClient = createAdminClient()
 
@@ -39,7 +38,6 @@ export default async function RemindersPage() {
   const { data: remindersRaw } = await adminClient
     .from('reminders')
     .select('*, buyers(first_name, last_name, email)')
-    .eq('company_id', companyId)
     .order('created_at', { ascending: false })
     .limit(50)
 
@@ -58,7 +56,6 @@ export default async function RemindersPage() {
   const { data: estatesRaw } = await adminClient
     .from('estates')
     .select('id, name')
-    .eq('company_id', companyId)
     .order('name')
 
   const estates = (estatesRaw || []) as Array<{ id: string; name: string }>
@@ -67,7 +64,6 @@ export default async function RemindersPage() {
   const { data: buyersRaw } = await adminClient
     .from('buyers')
     .select('id, first_name, last_name, email, estate_id, payment_status, allocation_status')
-    .eq('company_id', companyId)
     .order('first_name')
 
   const buyers = (buyersRaw || []) as Array<{
@@ -84,7 +80,7 @@ export default async function RemindersPage() {
   const { data: companySettings } = await adminClient
     .from('companies')
     .select('auto_reminders_enabled, reminder_days_before')
-    .eq('id', companyId)
+    .limit(1)
     .single()
 
   const autoRemindersEnabled = companySettings?.auto_reminders_enabled ?? false

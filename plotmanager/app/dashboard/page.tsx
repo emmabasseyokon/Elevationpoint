@@ -17,7 +17,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('company_id')
+    .select('id')
     .eq('id', user.id)
     .single()
 
@@ -25,17 +25,14 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  const companyId = profile.company_id!
 
   const { count: totalBuyers } = await supabase
     .from('buyers')
     .select('*', { count: 'exact', head: true })
-    .eq('company_id', companyId)
 
   const { data: buyersRaw } = await supabase
     .from('buyers')
     .select('total_amount, amount_paid, payment_status')
-    .eq('company_id', companyId)
 
   const buyers = (buyersRaw || []) as Array<{ total_amount: number; amount_paid: number; payment_status: string }>
 
@@ -54,7 +51,6 @@ export default async function DashboardPage() {
   const { data: recentBuyersRaw } = await supabase
     .from('buyers')
     .select('id, first_name, last_name, plot_location, payment_status, created_at')
-    .eq('company_id', companyId)
     .order('created_at', { ascending: false })
     .limit(5)
 
@@ -71,7 +67,6 @@ export default async function DashboardPage() {
   const { data: upcomingRaw } = await adminClient
     .from('payment_schedules')
     .select('id, due_date, expected_amount, paid_amount, status, installment_number, buyer_id, buyers(id, first_name, last_name, estates(name))')
-    .eq('company_id', companyId)
     .in('status', ['unpaid', 'partial', 'overdue'])
     .lte('due_date', thirtyDaysFromNow)
     .order('due_date', { ascending: true })

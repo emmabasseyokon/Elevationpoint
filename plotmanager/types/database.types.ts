@@ -17,7 +17,6 @@ export type Database = {
       activity_logs: {
         Row: {
           id: string
-          company_id: string
           user_id: string | null
           user_name: string
           action: string
@@ -29,7 +28,6 @@ export type Database = {
         }
         Insert: {
           id?: string
-          company_id: string
           user_id?: string | null
           user_name: string
           action: string
@@ -41,7 +39,6 @@ export type Database = {
         }
         Update: {
           id?: string
-          company_id?: string
           user_id?: string | null
           user_name?: string
           action?: string
@@ -52,13 +49,6 @@ export type Database = {
           created_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "activity_logs_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "activity_logs_user_id_fkey"
             columns: ["user_id"]
@@ -71,7 +61,6 @@ export type Database = {
       agents: {
         Row: {
           id: string
-          company_id: string
           first_name: string
           last_name: string
           email: string | null
@@ -88,7 +77,6 @@ export type Database = {
         }
         Insert: {
           id?: string
-          company_id: string
           first_name: string
           last_name: string
           email?: string | null
@@ -105,7 +93,6 @@ export type Database = {
         }
         Update: {
           id?: string
-          company_id?: string
           first_name?: string
           last_name?: string
           email?: string | null
@@ -120,22 +107,13 @@ export type Database = {
           created_at?: string | null
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "agents_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       buyers: {
         Row: {
           agent_id: string | null
           allocation_status: string
           amount_paid: number
-          company_id: string
           created_at: string | null
           documents: Json | null
           city: string | null
@@ -174,7 +152,6 @@ export type Database = {
           agent_id?: string | null
           allocation_status?: string
           amount_paid?: number
-          company_id: string
           created_at?: string | null
           documents?: Json | null
           city?: string | null
@@ -213,7 +190,6 @@ export type Database = {
           agent_id?: string | null
           allocation_status?: string
           amount_paid?: number
-          company_id?: string
           created_at?: string | null
           documents?: Json | null
           city?: string | null
@@ -250,13 +226,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "buyers_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "buyers_estate_id_fkey"
             columns: ["estate_id"]
             isOneToOne: false
@@ -275,7 +244,6 @@ export type Database = {
       commissions: {
         Row: {
           id: string
-          company_id: string
           agent_id: string
           buyer_id: string
           commission_amount: number
@@ -287,7 +255,6 @@ export type Database = {
         }
         Insert: {
           id?: string
-          company_id: string
           agent_id: string
           buyer_id: string
           commission_amount?: number
@@ -299,7 +266,6 @@ export type Database = {
         }
         Update: {
           id?: string
-          company_id?: string
           agent_id?: string
           buyer_id?: string
           commission_amount?: number
@@ -310,13 +276,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "commissions_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "commissions_agent_id_fkey"
             columns: ["agent_id"]
@@ -336,7 +295,6 @@ export type Database = {
       commission_payments: {
         Row: {
           id: string
-          company_id: string
           commission_id: string
           amount: number
           payment_date: string
@@ -348,7 +306,6 @@ export type Database = {
         }
         Insert: {
           id?: string
-          company_id: string
           commission_id: string
           amount: number
           payment_date: string
@@ -360,7 +317,6 @@ export type Database = {
         }
         Update: {
           id?: string
-          company_id?: string
           commission_id?: string
           amount?: number
           payment_date?: string
@@ -371,13 +327,6 @@ export type Database = {
           created_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "commission_payments_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "commission_payments_commission_id_fkey"
             columns: ["commission_id"]
@@ -442,7 +391,6 @@ export type Database = {
       estates: {
         Row: {
           available_plots: number
-          company_id: string
           created_at: string | null
           description: string | null
           id: string
@@ -457,7 +405,6 @@ export type Database = {
         }
         Insert: {
           available_plots?: number
-          company_id: string
           created_at?: string | null
           description?: string | null
           id?: string
@@ -472,7 +419,6 @@ export type Database = {
         }
         Update: {
           available_plots?: number
-          company_id?: string
           created_at?: string | null
           description?: string | null
           id?: string
@@ -485,21 +431,12 @@ export type Database = {
           total_plots?: number
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "estates_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       payment_schedules: {
         Row: {
           id: string
           buyer_id: string
-          company_id: string
           installment_number: number
           due_date: string
           expected_amount: number
@@ -512,7 +449,6 @@ export type Database = {
         Insert: {
           id?: string
           buyer_id: string
-          company_id: string
           installment_number: number
           due_date: string
           expected_amount: number
@@ -525,7 +461,6 @@ export type Database = {
         Update: {
           id?: string
           buyer_id?: string
-          company_id?: string
           installment_number?: number
           due_date?: string
           expected_amount?: number
@@ -544,13 +479,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "payment_schedules_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "payment_schedules_payment_id_fkey"
             columns: ["payment_id"]
             isOneToOne: false
@@ -563,7 +491,6 @@ export type Database = {
         Row: {
           amount: number
           buyer_id: string
-          company_id: string
           created_at: string | null
           id: string
           notes: string | null
@@ -575,7 +502,6 @@ export type Database = {
         Insert: {
           amount: number
           buyer_id: string
-          company_id: string
           created_at?: string | null
           id?: string
           notes?: string | null
@@ -587,7 +513,6 @@ export type Database = {
         Update: {
           amount?: number
           buyer_id?: string
-          company_id?: string
           created_at?: string | null
           id?: string
           notes?: string | null
@@ -605,13 +530,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "payments_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "payments_recorded_by_fkey"
             columns: ["recorded_by"]
             isOneToOne: false
@@ -622,7 +540,6 @@ export type Database = {
       }
       profiles: {
         Row: {
-          company_id: string | null
           created_at: string | null
           email: string
           full_name: string
@@ -631,7 +548,6 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          company_id?: string | null
           created_at?: string | null
           email: string
           full_name: string
@@ -640,7 +556,6 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          company_id?: string | null
           created_at?: string | null
           email?: string
           full_name?: string
@@ -648,20 +563,11 @@ export type Database = {
           role?: string
           updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       reminders: {
         Row: {
           buyer_id: string
-          company_id: string
           created_at: string | null
           id: string
           message: string
@@ -672,7 +578,6 @@ export type Database = {
         }
         Insert: {
           buyer_id: string
-          company_id: string
           created_at?: string | null
           id?: string
           message: string
@@ -683,7 +588,6 @@ export type Database = {
         }
         Update: {
           buyer_id?: string
-          company_id?: string
           created_at?: string | null
           id?: string
           message?: string
@@ -701,13 +605,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "reminders_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "reminders_sent_by_fkey"
             columns: ["sent_by"]
             isOneToOne: false
@@ -716,12 +613,40 @@ export type Database = {
           },
         ]
       }
+      rate_limits: {
+        Row: {
+          key: string
+          count: number
+          reset_at: string
+        }
+        Insert: {
+          key: string
+          count: number
+          reset_at: string
+        }
+        Update: {
+          key?: string
+          count?: number
+          reset_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_rate_limit: {
+        Args: {
+          p_key: string
+          p_max: number
+          p_window_seconds: number
+        }
+        Returns: {
+          allowed: boolean
+          retry_after_seconds: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

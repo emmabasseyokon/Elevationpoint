@@ -37,18 +37,16 @@ export default async function BuyerDetailPage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('company_id')
+    .select('id')
     .eq('id', user.id)
     .single()
 
   if (!profile) redirect('/login')
-  const companyId = profile.company_id!
 
   const { data: buyerRaw } = await supabase
     .from('buyers')
     .select('*, estates(name), agents(first_name, last_name)')
     .eq('id', id)
-    .eq('company_id', companyId)
     .single()
 
   if (!buyerRaw) redirect('/dashboard/buyers')
@@ -96,7 +94,6 @@ export default async function BuyerDetailPage({
     .from('payments')
     .select('*')
     .eq('buyer_id', id)
-    .eq('company_id', companyId)
     .order('payment_date', { ascending: false })
 
   const payments = (paymentsRaw || []) as Array<{
@@ -128,7 +125,6 @@ export default async function BuyerDetailPage({
       .from('payment_schedules')
       .select('*')
       .eq('buyer_id', id)
-      .eq('company_id', companyId)
       .order('installment_number', { ascending: true })
 
     const today = new Date().toISOString().split('T')[0]

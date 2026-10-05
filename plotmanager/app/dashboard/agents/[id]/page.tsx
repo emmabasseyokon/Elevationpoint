@@ -32,18 +32,16 @@ export default async function AgentDetailPage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('company_id')
+    .select('id')
     .eq('id', user.id)
     .single()
 
   if (!profile) redirect('/login')
-  const companyId = profile.company_id!
 
   const { data: agentRaw } = await supabase
     .from('agents')
     .select('*')
     .eq('id', id)
-    .eq('company_id', companyId)
     .single()
 
   if (!agentRaw) redirect('/dashboard/agents')
@@ -69,7 +67,6 @@ export default async function AgentDetailPage({
     .from('commissions')
     .select('*, buyers(first_name, last_name, estate_id, estates(name))')
     .eq('agent_id', id)
-    .eq('company_id', companyId)
     .order('created_at', { ascending: false })
 
   const commissions = (commissionsRaw || []) as Array<{

@@ -20,17 +20,15 @@ export default async function AgentsPage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('company_id')
+    .select('id')
     .eq('id', user.id)
     .single()
 
   if (!profile) redirect('/login')
-  const companyId = profile.company_id!
 
   let query = supabase
     .from('agents')
     .select('id, first_name, last_name, email, phone, commission_type, commission_rate, status')
-    .eq('company_id', companyId)
     .order('created_at', { ascending: false })
 
   if (params.status && params.status !== 'all') {
@@ -63,7 +61,6 @@ export default async function AgentsPage({
     const { data: commissionsRaw } = await supabase
       .from('commissions')
       .select('agent_id')
-      .eq('company_id', companyId)
       .in('agent_id', agentIds)
 
     for (const c of commissionsRaw || []) {

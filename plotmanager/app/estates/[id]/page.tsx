@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { createAdminClient } from '@/lib/supabase/admin'
-import { APP_COMPANY_ID, APP_NAME, APP_COMPANY_SLUG } from '@/lib/config'
+import { APP_NAME, APP_COMPANY_SLUG } from '@/lib/config'
 import { MapPin, ArrowLeft, Phone, Mail } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -28,7 +28,6 @@ export default async function EstateDetailPage({ params }: EstateDetailProps) {
     .from('estates')
     .select('*')
     .eq('id', id)
-    .eq('company_id', APP_COMPANY_ID)
     .in('status', ['active', 'sold_out'])
     .single()
 
@@ -39,7 +38,7 @@ export default async function EstateDetailPage({ params }: EstateDetailProps) {
   const { data: company } = await adminClient
     .from('companies')
     .select('name, phone, email')
-    .eq('id', APP_COMPANY_ID)
+    .limit(1)
     .single()
 
   const isSoldOut = estate.status === 'sold_out' || estate.available_plots === 0

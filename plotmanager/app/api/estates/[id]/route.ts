@@ -11,13 +11,12 @@ export async function GET(
     const { id } = await params
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { companyId, adminClient } = result.auth
+    const { adminClient } = result.auth
 
     const { data: estate, error } = await adminClient
       .from('estates')
       .select('*')
       .eq('id', id)
-      .eq('company_id', companyId)
       .single()
 
     if (error || !estate) {
@@ -38,7 +37,7 @@ export async function PUT(
     const { id } = await params
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { companyId, adminClient } = result.auth
+    const { adminClient } = result.auth
 
     const body = await request.json()
     const parsed = estateSchema.partial().safeParse(body)
@@ -48,7 +47,6 @@ export async function PUT(
       .from('estates')
       .select('id')
       .eq('id', id)
-      .eq('company_id', companyId)
       .single()
 
     if (!existing) {
@@ -68,7 +66,6 @@ export async function PUT(
       .from('estates')
       .update(updateData)
       .eq('id', id)
-      .eq('company_id', companyId)
       .select()
       .single()
 
@@ -78,7 +75,6 @@ export async function PUT(
 
     if (estate) {
       logActivity({
-        companyId,
         userId: result.auth.userId,
         userName: result.auth.userName,
         action: 'updated',
@@ -102,13 +98,12 @@ export async function DELETE(
     const { id } = await params
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { companyId, adminClient } = result.auth
+    const { adminClient } = result.auth
 
     const { data: existing } = await adminClient
       .from('estates')
       .select('id, name')
       .eq('id', id)
-      .eq('company_id', companyId)
       .single()
 
     if (!existing) {
@@ -119,14 +114,12 @@ export async function DELETE(
       .from('estates')
       .delete()
       .eq('id', id)
-      .eq('company_id', companyId)
 
     if (error) {
       return serverError(error, `estates/${id}`)
     }
 
     logActivity({
-      companyId,
       userId: result.auth.userId,
       userName: result.auth.userName,
       action: 'deleted',

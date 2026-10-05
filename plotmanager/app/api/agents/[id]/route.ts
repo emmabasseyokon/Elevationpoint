@@ -12,13 +12,12 @@ export async function GET(
     const { id } = await params
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { companyId, adminClient } = result.auth
+    const { adminClient } = result.auth
 
     const { data: agent, error } = await adminClient
       .from('agents')
       .select('*')
       .eq('id', id)
-      .eq('company_id', companyId)
       .single()
 
     if (error || !agent) {
@@ -30,13 +29,11 @@ export async function GET(
       .from('commissions')
       .select('*', { count: 'exact', head: true })
       .eq('agent_id', id)
-      .eq('company_id', companyId)
 
     const { data: commissionTotal } = await adminClient
       .from('commissions')
       .select('commission_amount')
       .eq('agent_id', id)
-      .eq('company_id', companyId)
 
     const totalCommission = (commissionTotal || []).reduce(
       (sum, c) => sum + (c.commission_amount || 0),
@@ -61,7 +58,7 @@ export async function PUT(
     const { id } = await params
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { companyId, adminClient } = result.auth
+    const { adminClient } = result.auth
 
     const body = await request.json()
     const parsed = agentSchema.partial().safeParse(body)
@@ -86,7 +83,6 @@ export async function PUT(
       .from('agents')
       .update(updateData)
       .eq('id', id)
-      .eq('company_id', companyId)
       .select()
       .single()
 
@@ -96,7 +92,6 @@ export async function PUT(
 
     if (agent) {
       logActivity({
-        companyId,
         userId: result.auth.userId,
         userName: result.auth.userName,
         action: 'updated',
@@ -120,28 +115,25 @@ export async function DELETE(
     const { id } = await params
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { companyId, adminClient } = result.auth
+    const { adminClient } = result.auth
 
     // Get agent name before deleting
     const { data: existing } = await adminClient
       .from('agents')
       .select('first_name, last_name')
       .eq('id', id)
-      .eq('company_id', companyId)
       .single()
 
     const { error } = await adminClient
       .from('agents')
       .delete()
       .eq('id', id)
-      .eq('company_id', companyId)
 
     if (error) {
       return serverError(error, 'agents/[id]')
     }
 
     logActivity({
-      companyId,
       userId: result.auth.userId,
       userName: result.auth.userName,
       action: 'deleted',

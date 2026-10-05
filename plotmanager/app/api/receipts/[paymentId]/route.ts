@@ -10,14 +10,13 @@ export async function GET(
     const { paymentId } = await params
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { companyId, adminClient } = result.auth
+    const { adminClient } = result.auth
 
     // Fetch payment scoped to company
     const { data: payment, error: paymentError } = await adminClient
       .from('payments')
       .select('*')
       .eq('id', paymentId)
-      .eq('company_id', companyId)
       .single()
 
     if (paymentError || !payment) {
@@ -29,7 +28,6 @@ export async function GET(
       .from('buyers')
       .select('*, estates(name)')
       .eq('id', payment.buyer_id)
-      .eq('company_id', companyId)
       .single()
 
     if (!buyer) {
@@ -40,7 +38,7 @@ export async function GET(
     const { data: company } = await adminClient
       .from('companies')
       .select('name, email, phone, address')
-      .eq('id', companyId)
+      .limit(1)
       .single()
 
     if (!company) {

@@ -18,7 +18,7 @@ export async function PUT(
   try {
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { userId, companyId, adminClient } = result.auth
+    const { userId, adminClient } = result.auth
 
     const { id } = await params
     const body = await request.json()
@@ -35,7 +35,6 @@ export async function PUT(
       .from('payments')
       .select('id, amount, buyer_id')
       .eq('id', id)
-      .eq('company_id', companyId)
       .single()
 
     if (fetchError || !existingPayment) {
@@ -55,7 +54,6 @@ export async function PUT(
         notes: parsed.data.notes || null,
       })
       .eq('id', id)
-      .eq('company_id', companyId)
       .select()
       .single()
 
@@ -69,7 +67,6 @@ export async function PUT(
         .from('buyers')
         .select('id, first_name, last_name, amount_paid, total_amount, payment_status, estate_id, number_of_plots')
         .eq('id', existingPayment.buyer_id)
-        .eq('company_id', companyId)
         .single()
 
       if (buyer) {
@@ -82,7 +79,6 @@ export async function PUT(
           .from('buyers')
           .update({ amount_paid: newAmountPaid, payment_status: newPaymentStatus })
           .eq('id', buyer.id)
-          .eq('company_id', companyId)
 
         // Handle estate available_plots if status changed
         if (buyer.estate_id) {
@@ -120,7 +116,6 @@ export async function PUT(
     }
 
     logActivity({
-      companyId,
       userId,
       userName: result.auth.userName,
       action: 'updated',

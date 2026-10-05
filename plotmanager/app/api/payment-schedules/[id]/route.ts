@@ -9,14 +9,13 @@ export async function PUT(
     const { id } = await params
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { companyId, adminClient } = result.auth
+    const { adminClient } = result.auth
 
     // Verify ownership
     const { data: existing } = await adminClient
       .from('payment_schedules')
       .select('id')
       .eq('id', id)
-      .eq('company_id', companyId)
       .single()
 
     if (!existing) {
@@ -32,7 +31,6 @@ export async function PUT(
       .from('payment_schedules')
       .update(allowedFields)
       .eq('id', id)
-      .eq('company_id', companyId)
       .select()
       .single()
 

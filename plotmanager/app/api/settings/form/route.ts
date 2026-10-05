@@ -17,10 +17,20 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'form_enabled must be a boolean' }, { status: 400 })
     }
 
+    const { data: company } = await auth.adminClient
+      .from('companies')
+      .select('id')
+      .limit(1)
+      .single()
+
+    if (!company) {
+      return NextResponse.json({ error: 'Company not found' }, { status: 404 })
+    }
+
     const { error } = await auth.adminClient
       .from('companies')
       .update({ form_enabled })
-      .eq('id', auth.companyId)
+      .eq('id', company.id)
 
     if (error) {
       return serverError(error, 'PUT /api/settings/form')

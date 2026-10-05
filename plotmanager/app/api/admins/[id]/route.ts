@@ -20,12 +20,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Cannot remove yourself' }, { status: 400 })
     }
 
-    // Verify target belongs to same company and is not a super_admin
+    // Verify target is not a super_admin
     const { data: targetProfile } = await auth.adminClient
       .from('profiles')
-      .select('id, role, company_id, full_name')
+      .select('id, role, full_name')
       .eq('id', id)
-      .eq('company_id', auth.companyId)
       .single()
 
     if (!targetProfile) {
@@ -41,7 +40,6 @@ export async function DELETE(
     await auth.adminClient.auth.admin.deleteUser(id)
 
     logActivity({
-      companyId: auth.companyId,
       userId: auth.userId,
       userName: auth.userName,
       action: 'deleted',

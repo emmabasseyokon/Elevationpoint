@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { companyId, adminClient } = result.auth
+    const { adminClient } = result.auth
 
     const buyerId = request.nextUrl.searchParams.get('buyer_id')
     if (!buyerId) {
@@ -16,7 +16,6 @@ export async function GET(request: NextRequest) {
       .from('payment_schedules')
       .select('*')
       .eq('buyer_id', buyerId)
-      .eq('company_id', companyId)
       .order('installment_number', { ascending: true })
 
     if (error) {

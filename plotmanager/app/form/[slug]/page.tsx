@@ -44,7 +44,6 @@ export default async function PublicFormPage({ params }: FormPageProps) {
   const { data: estatesRaw } = await adminClient
     .from('estates')
     .select('id, name, location, price_per_plot, plot_sizes')
-    .eq('company_id', company.id)
     .eq('status', 'active')
     .gt('available_plots', 0)
     .order('name')
@@ -61,7 +60,6 @@ export default async function PublicFormPage({ params }: FormPageProps) {
   const { data: agentsRaw } = await adminClient
     .from('agents')
     .select('id, first_name, last_name')
-    .eq('company_id', company.id)
     .eq('status', 'active')
     .order('first_name')
 

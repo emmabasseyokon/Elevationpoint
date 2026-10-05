@@ -10,7 +10,7 @@ export async function PUT(
     const { id } = await params
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { companyId, adminClient } = result.auth
+    const { adminClient } = result.auth
 
     const body = await request.json()
 
@@ -24,7 +24,6 @@ export async function PUT(
       .from('commissions')
       .update({ status: body.status })
       .eq('id', id)
-      .eq('company_id', companyId)
       .select()
       .single()
 
@@ -33,7 +32,6 @@ export async function PUT(
     }
 
     logActivity({
-      companyId,
       userId: result.auth.userId,
       userName: result.auth.userName,
       action: 'updated',

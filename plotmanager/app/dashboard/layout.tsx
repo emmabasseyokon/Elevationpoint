@@ -33,11 +33,6 @@ export default async function DashboardLayout({
 
   const typedProfile = profile as Tables<'profiles'>
 
-  if (!typedProfile.company_id) {
-    console.log('[DashboardLayout] No company_id on profile, redirecting to /login')
-    redirect('/login')
-  }
-
   console.log('[DashboardLayout] Auth OK — rendering dashboard for', typedProfile.email)
 
   return (

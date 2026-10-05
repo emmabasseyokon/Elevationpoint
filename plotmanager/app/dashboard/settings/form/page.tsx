@@ -11,7 +11,7 @@ export default async function FormSettingsPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('company_id, role')
+    .select('role')
     .eq('id', user.id)
     .single()
 
@@ -19,13 +19,12 @@ export default async function FormSettingsPage() {
 
   if (profile.role !== 'super_admin') redirect('/dashboard')
 
-  const companyId = profile.company_id!
   const adminClient = createAdminClient()
 
   const { data: company } = await adminClient
     .from('companies')
     .select('slug, form_enabled')
-    .eq('id', companyId)
+    .limit(1)
     .single()
 
   const slug = company?.slug || ''

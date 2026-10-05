@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
   try {
     // Rate limit: 10 uploads per minute per IP
     const rateLimitKey = getRateLimitKey(request, 'upload')
-    const { allowed, retryAfterSeconds } = checkRateLimit(rateLimitKey, { maxRequests: 10, windowSeconds: 60 })
+    const { allowed, retryAfterSeconds } = await checkRateLimit(rateLimitKey, { maxRequests: 10, windowSeconds: 60 })
     if (!allowed) {
       return NextResponse.json(
         { error: 'Too many uploads. Please try again later.' },
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     }
 
     const fileName = `${randomUUID()}.${ext}`
-    const filePath = `${company.id}/${fileName}`
+    const filePath = fileName
 
     const buffer = Buffer.from(await file.arrayBuffer())
 

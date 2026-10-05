@@ -20,17 +20,15 @@ export default async function EstatesPage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('company_id')
+    .select('id')
     .eq('id', user.id)
     .single()
 
   if (!profile) redirect('/login')
-  const companyId = profile.company_id!
 
   let query = supabase
     .from('estates')
     .select('id, name, location, total_plots, available_plots, price_per_plot, status, plot_sizes')
-    .eq('company_id', companyId)
     .order('created_at', { ascending: false })
 
   if (params.status && params.status !== 'all') {

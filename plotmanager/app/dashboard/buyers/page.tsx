@@ -20,17 +20,15 @@ export default async function BuyersPage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('company_id')
+    .select('id')
     .eq('id', user.id)
     .single()
 
   if (!profile) redirect('/login')
-  const companyId = profile.company_id!
 
   let query = supabase
     .from('buyers')
     .select('id, first_name, last_name, email, phone, plot_location, plot_number, payment_status, allocation_status, total_amount, amount_paid, estates(name)')
-    .eq('company_id', companyId)
     .order('created_at', { ascending: false })
 
   if (params.status && params.status !== 'all') {

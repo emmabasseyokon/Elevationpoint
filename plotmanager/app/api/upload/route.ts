@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     const fileName = `${randomUUID()}.${ext}`
-    const filePath = `${result.auth.companyId}/${fileName}`
+    const filePath = fileName
 
     const adminClient = createAdminClient()
     const buffer = Buffer.from(await file.arrayBuffer())

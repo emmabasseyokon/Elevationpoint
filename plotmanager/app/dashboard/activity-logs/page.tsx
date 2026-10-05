@@ -45,14 +45,13 @@ export default async function ActivityLogsPage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('company_id, role')
+    .select('role')
     .eq('id', user.id)
     .single()
 
   if (!profile) redirect('/login')
   if (profile.role !== 'super_admin') redirect('/dashboard')
 
-  const companyId = profile.company_id!
   const page = parseInt(params.page || '1')
   const limit = 50
   const offset = (page - 1) * limit
@@ -60,7 +59,6 @@ export default async function ActivityLogsPage({
   let query = supabase
     .from('activity_logs')
     .select('*', { count: 'exact' })
-    .eq('company_id', companyId)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1)
 

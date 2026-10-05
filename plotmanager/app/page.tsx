@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 
 import { createAdminClient } from '@/lib/supabase/admin'
-import { APP_COMPANY_ID, APP_NAME, APP_COMPANY_SLUG } from '@/lib/config'
+import { APP_NAME, APP_COMPANY_SLUG } from '@/lib/config'
 import { MapPin, Phone, Mail, ArrowRight, CheckCircle2, Quote } from 'lucide-react'
 import { LandingNav } from '@/components/LandingNav'
 import Image from 'next/image'
@@ -23,14 +23,13 @@ export default async function LandingPage() {
   const { data: company } = await adminClient
     .from('companies')
     .select('*')
-    .eq('id', APP_COMPANY_ID)
+    .limit(1)
     .single()
 
   // Fetch estates (active + sold_out)
   const { data: estates } = await adminClient
     .from('estates')
     .select('id, name, location, description, total_plots, available_plots, price_per_plot, status, image_url, plot_sizes')
-    .eq('company_id', APP_COMPANY_ID)
     .in('status', ['active', 'sold_out'])
     .order('created_at', { ascending: false })
 

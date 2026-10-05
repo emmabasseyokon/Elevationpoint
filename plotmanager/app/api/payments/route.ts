@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   try {
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { userId, companyId, adminClient } = result.auth
+    const { userId, adminClient } = result.auth
 
     const body = await request.json()
     const parsed = paymentSchema.safeParse(body)
@@ -22,7 +22,6 @@ export async function POST(request: NextRequest) {
       .from('buyers')
       .select('id, first_name, last_name, total_amount, amount_paid, payment_status, estate_id, number_of_plots')
       .eq('id', parsed.data.buyer_id)
-      .eq('company_id', companyId)
       .single()
 
     if (buyerError || !buyer) {
@@ -35,7 +34,6 @@ export async function POST(request: NextRequest) {
     const { data: payment, error: paymentError } = await adminClient
       .from('payments')
       .insert({
-        company_id: companyId,
         buyer_id: parsed.data.buyer_id,
         amount: parsed.data.amount,
         payment_date: parsed.data.payment_date,
@@ -60,7 +58,6 @@ export async function POST(request: NextRequest) {
       .from('buyers')
       .update({ amount_paid: newAmountPaid, payment_status: newPaymentStatus })
       .eq('id', parsed.data.buyer_id)
-      .eq('company_id', companyId)
 
     if (updateError) {
       return serverError(updateError, 'POST /api/payments')
@@ -97,7 +94,6 @@ export async function POST(request: NextRequest) {
             .from('payment_schedules')
             .select('id, expected_amount')
             .eq('buyer_id', parsed.data.buyer_id)
-            .eq('company_id', companyId)
             .in('status', ['unpaid', 'partial', 'overdue'])
 
           if (unpaidEntries && unpaidEntries.length > 0) {
@@ -127,7 +123,6 @@ export async function POST(request: NextRequest) {
               .from('payment_schedules')
               .select('*')
               .eq('id', parsed.data.schedule_entry_id)
-              .eq('company_id', companyId)
               .single()
 
             if (targetEntry) {
@@ -156,7 +151,6 @@ export async function POST(request: NextRequest) {
               .from('payment_schedules')
               .select('*')
               .eq('buyer_id', parsed.data.buyer_id)
-              .eq('company_id', companyId)
               .in('status', ['unpaid', 'partial', 'overdue'])
               .order('installment_number', { ascending: true })
               .limit(1)
@@ -187,7 +181,6 @@ export async function POST(request: NextRequest) {
             .from('payment_schedules')
             .select('due_date')
             .eq('buyer_id', parsed.data.buyer_id)
-            .eq('company_id', companyId)
             .in('status', ['unpaid', 'partial', 'overdue'])
             .order('installment_number', { ascending: true })
             .limit(1)
@@ -208,7 +201,6 @@ export async function POST(request: NextRequest) {
       .from('buyers')
       .select('agent_id')
       .eq('id', parsed.data.buyer_id)
-      .eq('company_id', companyId)
       .single()
 
     if (buyerAgent?.agent_id) {
@@ -216,7 +208,6 @@ export async function POST(request: NextRequest) {
         .from('agents')
         .select('id, commission_type, commission_rate')
         .eq('id', buyerAgent.agent_id)
-        .eq('company_id', companyId)
         .single()
 
       if (agent && agent.commission_rate > 0) {
@@ -231,7 +222,6 @@ export async function POST(request: NextRequest) {
             .select('id, commission_amount')
             .eq('buyer_id', parsed.data.buyer_id)
             .eq('agent_id', agent.id)
-            .eq('company_id', companyId)
             .order('created_at', { ascending: false })
             .limit(1)
             .single()
@@ -246,7 +236,6 @@ export async function POST(request: NextRequest) {
           } else {
             // No existing commission — create one (edge case: agent assigned after initial purchase)
             await adminClient.from('commissions').insert({
-              company_id: companyId,
               agent_id: agent.id,
               buyer_id: parsed.data.buyer_id,
               commission_amount: paymentCommission,
@@ -259,7 +248,6 @@ export async function POST(request: NextRequest) {
     }
 
     logActivity({
-      companyId,
       userId,
       userName: result.auth.userName,
       action: 'created',

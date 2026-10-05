@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   try {
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { companyId, adminClient } = result.auth
+    const { adminClient } = result.auth
 
     const url = new URL(request.url)
     const page = Math.max(1, parseInt(url.searchParams.get('page') || '1') || 1)
@@ -20,7 +20,6 @@ export async function GET(request: NextRequest) {
     const { data: reminders, error, count } = await adminClient
       .from('reminders')
       .select('*, buyers(first_name, last_name, email)', { count: 'exact' })
-      .eq('company_id', companyId)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
@@ -38,7 +37,7 @@ export async function POST(request: NextRequest) {
   try {
     const result = await authenticateRequest()
     if (result.error) return result.error
-    const { userId, companyId, adminClient } = result.auth
+    const { userId, adminClient } = result.auth
 
     const body = await request.json()
     const parsed = reminderSchema.safeParse(body)
@@ -49,7 +48,6 @@ export async function POST(request: NextRequest) {
       .from('buyers')
       .select('id, first_name, last_name, email, total_amount, amount_paid, next_payment_date, payment_status')
       .eq('id', parsed.data.buyer_id)
-      .eq('company_id', companyId)
       .single()
 
     if (!buyer) {
@@ -64,7 +62,7 @@ export async function POST(request: NextRequest) {
     const { data: company } = await adminClient
       .from('companies')
       .select('name, phone, email')
-      .eq('id', companyId)
+      .limit(1)
       .single()
 
     const companyName = company?.name || 'Your Real Estate Company'
@@ -75,7 +73,6 @@ export async function POST(request: NextRequest) {
       .from('payment_schedules')
       .select('expected_amount, paid_amount, due_date')
       .eq('buyer_id', parsed.data.buyer_id)
-      .eq('company_id', companyId)
       .in('status', ['unpaid', 'partial', 'overdue'])
       .order('due_date', { ascending: true })
       .limit(1)
@@ -127,7 +124,6 @@ export async function POST(request: NextRequest) {
       .from('reminders')
       .insert({
         buyer_id: parsed.data.buyer_id,
-        company_id: companyId,
         reminder_type: parsed.data.reminder_type,
         message: parsed.data.message,
         sent_via: 'email',
@@ -142,7 +138,6 @@ export async function POST(request: NextRequest) {
     }
 
     logActivity({
-      companyId,
       userId,
       userName: result.auth.userName,
       action: 'created',

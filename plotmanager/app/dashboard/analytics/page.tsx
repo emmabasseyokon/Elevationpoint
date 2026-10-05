@@ -16,7 +16,7 @@ export default async function AnalyticsPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('company_id')
+    .select('id')
     .eq('id', user.id)
     .single()
 
@@ -24,13 +24,11 @@ export default async function AnalyticsPage() {
     redirect('/login')
   }
 
-  const companyId = profile.company_id!
   const adminClient = createAdminClient()
 
   const { data: buyersRaw } = await adminClient
     .from('buyers')
     .select('referral_source, total_amount, amount_paid, number_of_plots, payment_status')
-    .eq('company_id', companyId)
 
   const buyers = (buyersRaw || []) as Array<{
     referral_source: string | null
